@@ -3,7 +3,6 @@ name: Deploy to Heroku (Docker)
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch:
 
 jobs:
   deploy:
@@ -12,36 +11,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Instala Heroku CLI (para release)
+      - name: Docker login to Heroku
+        run: echo "${{ secrets.HEROKU_API_KEY }}" | docker login -u _ --password-stdin registry.heroku.com
+
+      - name: Build and Push Docker image
+        run: |
+          docker build -t registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web .
+          docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
+
       - name: Install Heroku CLI
         run: curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
 
-      # Login al registry de Heroku
-      - name: Docker login to Heroku Container Registry
-        run: echo "${{ secrets.HEROKU_API_KEY }}" | docker login -u _ --password-stdin registry.heroku.com
-
-      # (Opcional) Habilita buildx + caché para builds más rápidos
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      # Build & Push de la imagen con caché
-      - name: Build and Push image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      # Release de la imagen como dyno web
-      - name: Release image on Heroku
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: |
-          heroku container:release web -a ${{ secrets.HEROKU_APP_NAME }}
-
-      # (Opcional) Verificar estado
-      - name: Check Heroku app status
-        run: |
-          echo "App URL: https://${{ secrets.HEROKU_APP_NAME }}.herokuapp.com/"
+      - name: Release app on Heroku
+        run: heroku container:release web -a ${{ secrets.HEROKU_APP_NAME }}
