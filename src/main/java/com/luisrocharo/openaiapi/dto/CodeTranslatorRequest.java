@@ -9,8 +9,9 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class QuestionRequest {
-    private String originalLanguage;
+public class CodeTranslatorRequest {
+    
+    private String sourceLanguage;
     private String targetLanguage;
-    private String content;
+    private String codeSnippet;
 }
