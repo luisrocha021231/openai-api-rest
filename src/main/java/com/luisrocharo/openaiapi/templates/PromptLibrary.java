@@ -10,4 +10,10 @@ public class PromptLibrary {
                             if the code snippet not match to {sourceCode} just answer with "Code snippet does not match the {sourceCode}"
                             """);
     
+
+    public static final PromptTemplate SIMPLE_CHAT_WITH_MODEL_PROMPT_TEMPLATE =
+            new PromptTemplate("""
+                            You are a assistant that always answer in a concise way.
+                            {input}
+                            """);
 }
