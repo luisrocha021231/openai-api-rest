@@ -1,5 +1,6 @@
 package com.luisrocharo.openaiapi.config;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -31,10 +32,10 @@ import com.luisrocharo.openaiapi.jwt.JwtEntryPoint;
 public class SecurityConfig {
 
     @Value("${app.cors.allowed-origins}")
-    private String[] allowedOrigins;
+    private String allowedOriginsString;
 
     @Value("${app.security.permit-all}")
-    private String[] allowedRoutes;
+    private String allowedRoutesString;
     
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -48,6 +49,9 @@ public class SecurityConfig {
         JwtEntryPoint jwtEntryPoint,
         AuthenticationProvider authenticationProvider) throws Exception {
 
+        // Convertir las variables en listas válidas
+        String[] allowedRoutes = allowedRoutesString.split(",");
+        
         http
             .cors(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable)
@@ -77,9 +81,9 @@ public class SecurityConfig {
     @Bean
     AuthenticationProvider authenticationProvider(UserDetailsService uds, PasswordEncoder encoder) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-            provider.setUserDetailsService(uds);
-            provider.setPasswordEncoder(encoder);
-            return provider;
+        provider.setUserDetailsService(uds);
+        provider.setPasswordEncoder(encoder);
+        return provider;
     }
 
     @Bean
@@ -89,14 +93,17 @@ public class SecurityConfig {
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
+        // Dividir correctamente los orígenes permitidos
+        List<String> allowedOrigins = Arrays.asList(allowedOriginsString.split(","));
+        
         CorsConfiguration configuration = new CorsConfiguration();
-            configuration.setAllowedOrigins(List.of(allowedOrigins));
-            configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-            configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With"));
-            configuration.setAllowCredentials(true);
+        configuration.setAllowedOrigins(allowedOrigins);
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With"));
+        configuration.setAllowCredentials(true);
 
-            UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-                source.registerCorsConfiguration("/**", configuration);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
     
         return source;
     }
