@@ -21,7 +21,7 @@ public class CommentsController {
     @Autowired
     private CommentsService commentsService;
 
-    @PostMapping("/comments")
+    @PostMapping("/comment/create")
     public ResponseEntity<CommentsEntity> createComment( @RequestBody CommentsEntity comment, BindingResult bindingResult) {
         if(bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
@@ -33,7 +33,7 @@ public class CommentsController {
         }
     }
 
-    @GetMapping("/comments-latest")
+    @GetMapping("/comments/latest")
     public ResponseEntity<List<CommentsEntity>> getComments() {
         List<CommentsEntity> comments = commentsService.getFourLatestComments();
         return ResponseEntity.ok(comments);
