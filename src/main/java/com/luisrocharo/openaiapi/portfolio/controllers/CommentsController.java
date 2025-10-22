@@ -15,13 +15,13 @@ import com.luisrocharo.openaiapi.portfolio.entities.CommentsEntity;
 import com.luisrocharo.openaiapi.portfolio.services.CommentsService;
 
 @RestController
-@RequestMapping("/public")
+@RequestMapping("/comments")
 public class CommentsController {
     
     @Autowired
     private CommentsService commentsService;
 
-    @PostMapping("/comment/create")
+    @PostMapping
     public ResponseEntity<CommentsEntity> createComment( @RequestBody CommentsEntity comment, BindingResult bindingResult) {
         if(bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
@@ -33,7 +33,7 @@ public class CommentsController {
         }
     }
 
-    @GetMapping("/comments/latest")
+    @GetMapping
     public ResponseEntity<List<CommentsEntity>> getComments() {
         List<CommentsEntity> comments = commentsService.getFourLatestComments();
         return ResponseEntity.ok(comments);
