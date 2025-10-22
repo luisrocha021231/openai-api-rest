@@ -1,9 +1,7 @@
 package com.luisrocharo.openaiapi.config;
 
-import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,12 +29,6 @@ import com.luisrocharo.openaiapi.jwt.JwtEntryPoint;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("${app.cors.allowed-origins}")
-    private String allowedOriginsString;
-
-    @Value("${app.security.permit-all}")
-    private String allowedRoutesString;
-    
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -49,22 +41,25 @@ public class SecurityConfig {
         JwtEntryPoint jwtEntryPoint,
         AuthenticationProvider authenticationProvider) throws Exception {
 
-        // Convertir las variables en listas válidas
-        String[] allowedRoutes = allowedRoutesString.split(",");
-        
         http
             .cors(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(allowedRoutes)
-                .permitAll()
-                .anyRequest()
-                .authenticated())
+                .requestMatchers(
+                    "/auth/register",
+                    "/auth/login",
+                    "/public/**",
+                    "/swagger-ui/**",
+                    "/v3/api-docs/**",
+                    "/api/code-translator/translate"
+                ).permitAll()
+                .anyRequest().authenticated()
+            )
             .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtEntryPoint))
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider)
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-            
+
         return http.build();
     }
 
@@ -93,18 +88,20 @@ public class SecurityConfig {
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
-        // Dividir correctamente los orígenes permitidos
-        List<String> allowedOrigins = Arrays.asList(allowedOriginsString.split(","));
-        
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(allowedOrigins);
+        configuration.setAllowedOrigins(List.of(
+            "https://luisrocharo.com",
+            "https://portfolio-4cz.pages.dev",
+            "https://iacodetranslator.luisrocharo.com",
+            "https://iacodetranslator.pages.dev"
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-    
+
         return source;
     }
 }
